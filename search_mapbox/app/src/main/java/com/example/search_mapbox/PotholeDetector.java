@@ -87,9 +87,9 @@ public class PotholeDetector implements SensorEventListener {
 
     private void sendPotholeData(Point location, double severity) {
         Log.d("PotholeDetector", "Pothole saved successfully with id: ");
-        // Khởi tạo Retrofit
+
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://nhom10.tanlamdevops.id.vn/")
+                .baseUrl("http://nhom10.tanlamdevops.id.vn")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
@@ -101,7 +101,7 @@ public class PotholeDetector implements SensorEventListener {
                 1 // Thay thế bằng user_id thực tế
         );
 
-        // Gọi API
+
         retrofit.create(PotholeApi.class)
                 .addPothole(potholeData)
                 .enqueue(new Callback<ApiResponse>() {

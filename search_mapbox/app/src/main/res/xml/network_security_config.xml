@@ -6,4 +6,7 @@
             <certificates src="user" />
         </trust-anchors>
     </base-config>
-</network-security-config> 
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">nhom10.tanlamdevops.id.vn</domain>
+    </domain-config>
+</network-security-config>

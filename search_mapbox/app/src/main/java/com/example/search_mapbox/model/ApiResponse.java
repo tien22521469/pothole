@@ -12,6 +12,12 @@ public class ApiResponse {
     @SerializedName("id")
     private int id;
 
+    public ApiResponse(String status, String message, int id) {
+        this.status = status;
+        this.message = message;
+        this.id = id;
+    }
+
     public String getStatus() {
         return status;
     }

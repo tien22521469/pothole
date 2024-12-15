@@ -27,7 +27,7 @@ public class PotholeRepository {
 
     private PotholeRepository() {
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://nhom10.tanlamdevops.id.vn/")
+                .baseUrl("http://nhom10.tanlamdevops.id.vn/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
@@ -42,35 +42,30 @@ public class PotholeRepository {
     }
 
     public void getPotholes(PotholeCallback callback) {
-        potholeApi.getPotholes().enqueue(new Callback<PotholeResponse>() {
+        potholeApi.getPotholes().enqueue(new Callback<List<PotholeResponse>>() {
             @Override
-            public void onResponse(Call<PotholeResponse> call, Response<PotholeResponse> response) {
+            public void onResponse(Call<List<PotholeResponse>> call, Response<List<PotholeResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    PotholeResponse potholeResponse = response.body();
-                    if ("success".equals(potholeResponse.getStatus()) && potholeResponse.getData() != null) {
-                        List<PotholeData> potholes = new ArrayList<>();
-                        for (PotholeResponse.PotholeItem item : potholeResponse.getData()) {
-                            potholes.add(new PotholeData(
-                                    item.getLatitude(),
-                                    item.getLongitude(),
-                                    item.getSeverity(),
-                                    item.getUserId()
-                            ));
-                            Log.d("API",potholes.get(0).getLatitude()+" "+potholes.get(0).getLongitude());
-                        }
-                        callback.onSuccess(potholes);
-                    } else {
-                        callback.onError("Invalid response format");
+                    List<PotholeData> potholes = new ArrayList<>();
+                    for (PotholeResponse item : response.body()) {
+                        potholes.add(new PotholeData(
+                                item.getLatitude(),
+                                item.getLongitude(),
+                                0.0,  // severity không cần thiết
+                                0     // user_id không cần thiết
+                        ));
                     }
+                    callback.onSuccess(potholes);
                 } else {
                     callback.onError("Failed to get potholes");
                 }
             }
 
             @Override
-            public void onFailure(Call<PotholeResponse> call, Throwable t) {
+            public void onFailure(Call<List<PotholeResponse>> call, Throwable t) {
                 Log.e(TAG, "Error getting potholes: " + t.getMessage());
-                callback.onError(t.getMessage());
+                Log.e(TAG, "Stack trace: ", t);
+                callback.onError("Network error: " + t.getMessage());
             }
         });
     }

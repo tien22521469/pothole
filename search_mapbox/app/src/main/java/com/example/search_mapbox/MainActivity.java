@@ -605,13 +605,11 @@ public class MainActivity extends AppCompatActivity {
                         Point point = Point.fromLngLat(pothole.getLongitude(), pothole.getLatitude());
                         PointAnnotationOptions pointAnnotationOptions = new PointAnnotationOptions()
                                 .withPoint(point)
-                                .withIconImage("red_marker")
+                                .withIconImage(potholeBitmap)
                                 .withIconSize(1.5f);
                         pointAnnotationManager.create(pointAnnotationOptions);
                     }
-                    Toast.makeText(MainActivity.this,
-                        "Loaded " + potholes.size() + " potholes",
-                        Toast.LENGTH_SHORT).show();
+                    Log.d("MainActivity", "Loaded " + potholes.size() + " potholes");
                 });
             }
 
@@ -619,8 +617,8 @@ public class MainActivity extends AppCompatActivity {
             public void onError(String message) {
                 runOnUiThread(() -> {
                     Toast.makeText(MainActivity.this,
-                        "Error loading potholes: " + message,
-                        Toast.LENGTH_LONG).show();
+                            "Error loading potholes: " + message,
+                            Toast.LENGTH_LONG).show();
                     Log.e("MainActivity", "Error loading potholes: " + message);
                 });
             }
