@@ -9,11 +9,24 @@ public class PotholeResponse {
     @SerializedName("longitude")
     private double longitude;
 
+    @SerializedName("severity")
+    private double severity;
+
+    @SerializedName("user_id")
+    private int userId;
+
     public double getLatitude() {
         return latitude;
     }
 
     public double getLongitude() {
         return longitude;
+    }
+    public double getSeverity() {
+        return severity;
+    }
+
+    public int getUserId() {
+        return userId;
     }
 }

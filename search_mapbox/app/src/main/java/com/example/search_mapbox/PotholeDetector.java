@@ -63,7 +63,6 @@ public class PotholeDetector implements SensorEventListener {
             // Tính toán độ lớn của gia tốc
             float acceleration = (float) Math.sqrt(x * x + y * y + z * z);
 
-            // Nếu phát hiện ổ gà (gia tốc vượt ngưỡng)
             if (acceleration > POTHOLE_THRESHOLD && currentLocation != null) {
                 Point potholeLocation = Point.fromLngLat(
                         currentLocation.getLongitude(),
@@ -78,7 +77,7 @@ public class PotholeDetector implements SensorEventListener {
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        // Không cần xử lý
+
     }
 
     public List<Point> getPotholeLocations() {
@@ -93,7 +92,7 @@ public class PotholeDetector implements SensorEventListener {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        // Tạo object PotholeData
+
         PotholeData potholeData = new PotholeData(
                 location.latitude(),
                 location.longitude(),

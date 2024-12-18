@@ -9,17 +9,17 @@ public class PotholeData {
     @SerializedName("longitude")
     private double longitude;
 
-//    @SerializedName("severity")
-//    private double severity;
-//
-//    @SerializedName("user_id")
-//    private int userId;
+    @SerializedName("severity")
+    private double severity;
+
+    @SerializedName("user_id")
+    private int userId;
 
     public PotholeData(double latitude, double longitude, double severity, int userId) {
         this.latitude = latitude;
         this.longitude = longitude;
-//        this.severity = severity;
-//        this.userId = userId;
+        this.severity = severity;
+        this.userId = userId;
     }
 
     public double getLatitude() {
@@ -30,12 +30,12 @@ public class PotholeData {
         return longitude;
     }
 
-//    public double getSeverity() {
-//        return severity;
-//    }
-//
-//    public int getUserId() {
-//        return userId;
+    public double getSeverity() {
+        return severity;
+    }
+
+    public int getUserId() {
+        return userId;
     }
 
 }
