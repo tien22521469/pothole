@@ -48,11 +48,19 @@ public class PotholeRepository {
                 if (response.isSuccessful() && response.body() != null) {
                     List<PotholeData> potholes = new ArrayList<>();
                     for (PotholeResponse item : response.body()) {
+                        Integer id = null;
+                        try {
+                            id = Integer.parseInt(item.getId());
+                        } catch (NumberFormatException e) {
+                            Log.e(TAG, "Error parsing ID: " + e.getMessage());
+                        }
+
                         potholes.add(new PotholeData(
+                                id,
                                 item.getLatitude(),
                                 item.getLongitude(),
-                                0.0,  // severity không cần thiết
-                                0     // user_id không cần thiết
+                                item.getSeverity(),
+                                0
                         ));
                     }
                     callback.onSuccess(potholes);

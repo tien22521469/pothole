@@ -60,7 +60,6 @@ public class PotholeDetector implements SensorEventListener {
             float y = event.values[1];
             float z = event.values[2];
 
-            // Tính toán độ lớn của gia tốc
             float acceleration = (float) Math.sqrt(x * x + y * y + z * z);
 
             if (acceleration > POTHOLE_THRESHOLD && currentLocation != null) {
@@ -84,22 +83,31 @@ public class PotholeDetector implements SensorEventListener {
         return potholeLocations;
     }
 
-    private void sendPotholeData(Point location, double severity) {
-        Log.d("PotholeDetector", "Pothole saved successfully with id: ");
-
+    private void sendPotholeData(Point location, double acceleration) {
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://nhom10.tanlamdevops.id.vn")
+                .baseUrl("http://nhom10.tanlamdevops.id.vn/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
 
+        String severityLevel;
+        if (acceleration <= 10.0f) {
+            severityLevel = "Low";
+        } else if (acceleration <= 20.0f) {
+            severityLevel = "Medium";
+        } else {
+            severityLevel = "High";
+        }
+
+        Log.d("PotholeDetector", "Acceleration: " + acceleration + ", Severity: " + severityLevel);
+
         PotholeData potholeData = new PotholeData(
+                null,
                 location.latitude(),
                 location.longitude(),
-                severity,
-                1 // Thay thế bằng user_id thực tế
+                severityLevel,  // Sử dụng severity level đã chuyển đổi
+                1  // Đảm bảo user_id hợp lệ
         );
-
 
         retrofit.create(PotholeApi.class)
                 .addPothole(potholeData)
@@ -109,9 +117,20 @@ public class PotholeDetector implements SensorEventListener {
                         if (response.isSuccessful() && response.body() != null) {
                             ApiResponse apiResponse = response.body();
                             if ("success".equals(apiResponse.getStatus())) {
-                                Log.d("PotholeDetector", "Pothole saved successfully with id: " + apiResponse.getId());
+                                Log.d("PotholeDetector", "Pothole saved successfully with id: " +
+                                        apiResponse.getId() + ", severity: " + severityLevel);
                             } else {
-                                Log.e("PotholeDetector", "Failed to save pothole: " + apiResponse.getMessage());
+                                Log.e("PotholeDetector", "Failed to save pothole: " +
+                                        apiResponse.getMessage());
+                                Log.e("PotholeDetector", "Response body: " + response.body());
+                            }
+                        } else {
+                            try {
+
+                                Log.e("PotholeDetector", "Error response: " +
+                                        response.errorBody().string());
+                            } catch (Exception e) {
+                                Log.e("PotholeDetector", "Error reading error body", e);
                             }
                         }
                     }

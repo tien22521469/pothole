@@ -133,17 +133,31 @@ public class MainActivity extends AppCompatActivity {
     private final LocationObserver locationObserver = new LocationObserver() {
         @Override
         public void onNewRawLocation(@NonNull Location location) {
-
+            // Không cần xử lý raw location
         }
 
         @Override
         public void onNewLocationMatcherResult(@NonNull LocationMatcherResult locationMatcherResult) {
             Location location = locationMatcherResult.getEnhancedLocation();
             navigationLocationProvider.changePosition(location, locationMatcherResult.getKeyPoints(), null, null);
+
+            // Cập nhật location cho cả hai detector
+            new Thread(() -> {
+                try {
+                    // Cập nhật PotholeDetector để phát hiện ổ gà mới
+                    potholeDetector.updateLocation(location);
+
+                    // Cập nhật PotholeProximityDetector để cảnh báo ổ gà gần đó
+                    potholeProximityDetector.updateLocation(location);
+                } catch (Exception e) {
+                    Log.e("MainActivity", "Error updating location for detectors", e);
+                }
+            }).start();
+
             if (focusLocation) {
-                updateCamera(Point.fromLngLat(location.getLongitude(), location.getLatitude()), (double) location.getBearing());
+                updateCamera(Point.fromLngLat(location.getLongitude(), location.getLatitude()),
+                        (double) location.getBearing());
             }
-            potholeDetector.updateLocation(location);
         }
     };
     private final RoutesObserver routesObserver = new RoutesObserver() {
@@ -246,6 +260,8 @@ public class MainActivity extends AppCompatActivity {
     private Bitmap potholeBitmap;
     private Bitmap locationBitmap;
 
+    private PotholeProximityDetector potholeProximityDetector;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -337,8 +353,11 @@ public class MainActivity extends AppCompatActivity {
         });
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                activityResultLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                        1);
             }
         }
 
@@ -445,11 +464,14 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+
+        potholeProximityDetector = new PotholeProximityDetector(this);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        potholeProximityDetector.reset();
         potholeDetector.start();
     }
 
@@ -509,9 +531,28 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mapboxNavigation.onDestroy();
+        if (mapboxNavigation != null) {
+            mapboxNavigation.onDestroy();
+            mapboxNavigation = null;
+        }
         mapboxNavigation.unregisterRoutesObserver(routesObserver);
         mapboxNavigation.unregisterLocationObserver(locationObserver);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mapboxNavigation != null) {
+            mapboxNavigation.unregisterLocationObserver(locationObserver);
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (mapboxNavigation != null) {
+            mapboxNavigation.registerLocationObserver(locationObserver);
+        }
     }
 
     private Bitmap getBitmapFromVectorDrawable(Context context, int drawableId) {
@@ -579,8 +620,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSuccess(List<PotholeData> potholes) {
                 Log.d("MainActivity", "Successfully loaded " + potholes.size() + " potholes");
-                runOnUiThread(() -> {
 
+                potholeProximityDetector.updatePotholes(potholes);
+
+                runOnUiThread(() -> {
                     pointAnnotationManager.deleteAll();
 
                     for (PotholeData pothole : potholes) {
